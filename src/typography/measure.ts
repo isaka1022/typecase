@@ -20,6 +20,12 @@ export interface LevelSize {
   px: number;
 }
 
+export interface LevelAppearance {
+  level: string;
+  fontWeight: number;
+  fontFamily: string;
+}
+
 /** A last line shorter than this share of the column reads as a stub in text
  * that has no word boundaries to fall on. */
 const CJK_WIDOW_FRACTION = 0.12;
@@ -39,10 +45,14 @@ export interface SpecimenMeasurement {
   computedFontSize: number;
   /** Rendered size of every typographic level present, largest first. */
   levelSizes: LevelSize[];
+  /** Non-size cues on every rendered level. */
+  levelAppearances: LevelAppearance[];
   headingSpaceBefore: number;
   headingSpaceAfter: number;
   /** Distance between the bottom of one paragraph and the top of the next. */
   paragraphGap: number;
+  /** Rendered first-line indent on a paragraph after the first. */
+  paragraphIndent: number;
   contrast: number;
   widowCount: number;
 }
@@ -265,14 +275,25 @@ export function measureSpecimen(
     : { before: 0, after: 0 };
 
   // Every level that is actually on the page, measured as rendered.
-  const seen = new Map<string, number>();
+  const seen = new Map<string, { px: number; fontWeight: number; fontFamily: string }>();
   for (const { level, el } of adapter.levels(root)) {
     if (seen.has(level)) continue;
-    seen.set(level, Number(parseFloat(getComputedStyle(el).fontSize).toFixed(2)));
+    const style = getComputedStyle(el);
+    const parsedWeight = Number.parseFloat(style.fontWeight);
+    seen.set(level, {
+      px: Number(parseFloat(style.fontSize).toFixed(2)),
+      fontWeight: Number.isFinite(parsedWeight) ? parsedWeight : style.fontWeight === "bold" ? 700 : 400,
+      fontFamily: style.fontFamily,
+    });
   }
   const levelSizes: LevelSize[] = [...seen.entries()]
-    .map(([level, px]) => ({ level, px }))
+    .map(([level, appearance]) => ({ level, px: appearance.px }))
     .sort((a, b) => b.px - a.px);
+  const levelAppearances: LevelAppearance[] = [...seen.entries()].map(([level, appearance]) => ({
+    level,
+    fontWeight: appearance.fontWeight,
+    fontFamily: appearance.fontFamily,
+  }));
 
   // The gap the reader actually sees between two paragraphs, rather than the
   // margin that was asked for: collapsing margins mean the two can differ.
@@ -282,6 +303,9 @@ export function measureSpecimen(
     const second = paragraphEls[1]!.getBoundingClientRect();
     paragraphGap = Number(Math.max(0, second.top - first.bottom).toFixed(2));
   }
+  const paragraphIndent = paragraphEls[1]
+    ? Number(parseFloat(getComputedStyle(paragraphEls[1]).textIndent).toFixed(2))
+    : 0;
 
   const bodyForContrast = firstParagraph ?? root;
   const textStyle = getComputedStyle(bodyForContrast);
@@ -298,9 +322,11 @@ export function measureSpecimen(
     computedLineHeight: bodyStyle ? Number(parseFloat(bodyStyle.lineHeight).toFixed(2)) : 0,
     computedFontSize: bodyStyle ? Number(parseFloat(bodyStyle.fontSize).toFixed(2)) : 0,
     levelSizes,
+    levelAppearances,
     headingSpaceBefore: headingSpace.before,
     headingSpaceAfter: headingSpace.after,
     paragraphGap,
+    paragraphIndent,
     contrast: (() => {
       const back = backdropOf(bodyForContrast);
       return contrastFromRgb(composite(resolveColor(textStyle.color), back), back);

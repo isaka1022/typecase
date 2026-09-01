@@ -30,7 +30,7 @@ function currentFindings(): Finding[] {
 function availableControls(): NumericControl[] {
   const { unlockedLesson, challenge } = getState();
   const fromRules = RULES.filter((rule) => rule.lesson <= unlockedLesson)
-    .map((rule) => rule.control)
+    .flatMap((rule) => [rule.control, ...(rule.relatedControls ?? [])])
     .filter((control): control is NumericControl => control !== undefined);
   const unique = [...new Set(fromRules)];
   return challenge ? unique.filter((control) => control !== challenge.control) : unique;
@@ -66,7 +66,9 @@ export function buildTools(): Array<Record<string, unknown>> {
                 ? Number((measurement.computedLineHeight / measurement.computedFontSize).toFixed(2))
                 : 0,
             levelSizesPx: measurement.levelSizes,
+            levelAppearances: measurement.levelAppearances,
             paragraphGapPx: measurement.paragraphGap,
+            paragraphIndentPx: measurement.paragraphIndent,
             spaceAboveHeadingPx: measurement.headingSpaceBefore,
             spaceBelowHeadingPx: measurement.headingSpaceAfter,
             contrastRatio: measurement.contrast,
@@ -97,6 +99,7 @@ export function buildTools(): Array<Record<string, unknown>> {
             problem: f.severity === "ok" ? null : f.message,
             why: f.why,
             source: f.source,
+            provenance: f.provenance ?? null,
             fixableWith: f.suggestion?.control ?? null,
           })),
         );

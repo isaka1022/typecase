@@ -22,6 +22,17 @@ export interface Finding {
 
 const CONTRAST_MIN = 4.5;
 const MIN_LEVEL_STEP = 1.15;
+const SCALE_RATIO_TOLERANCE = 0.03;
+const MIN_WEIGHT_STEP = 100;
+const SCALE_STEPS: Readonly<Record<string, number>> = {
+  title: 4,
+  h1: 4,
+  heading: 2,
+  h2: 2,
+  standfirst: 1,
+  h3: 1,
+};
+const HEADING_LEVELS = new Set(["title", "heading", "h1", "h2", "h3", "h4"]);
 
 function suggestion(
   control: NumericControl,
@@ -145,6 +156,8 @@ function evaluate(rule: Rule, spec: TypeSpec, m: SpecimenMeasurement): Finding {
       const ok = tightest >= MIN_LEVEL_STEP;
       return {
         ...base,
+        provenance:
+          "The 1.15 minimum and 1.08 error boundary are this tool's own visual calibration, not figures stated by Tufte.",
         severity: ok ? "ok" : tightest < 1.08 ? "error" : "warn",
         measured: `${tightest.toFixed(2)}× at the tightest step (${pair})`,
         message: ok
@@ -153,6 +166,74 @@ function evaluate(rule: Rule, spec: TypeSpec, m: SpecimenMeasurement): Finding {
         ...(ok
           ? {}
           : { suggestion: suggestion("scaleRatio", spec.scaleRatio, spec.scaleRatio * (MIN_LEVEL_STEP / tightest)) }),
+      };
+    }
+
+    case "scale-coherence": {
+      const body = m.levelSizes.find((level) => level.level === "body");
+      const ratios = body
+        ? m.levelSizes.flatMap((level) => {
+            const step = SCALE_STEPS[level.level];
+            return step && level.px > 0
+              ? [{ level: level.level, ratio: Math.pow(level.px / body.px, 1 / step) }]
+              : [];
+          })
+        : [];
+      if (ratios.length < 2) {
+        return {
+          ...base,
+          severity: "ok",
+          measured: "not enough named levels on the page",
+          message: "At least two heading levels and body text are needed to test one shared ratio.",
+        };
+      }
+      const values = ratios.map(({ ratio }) => ratio);
+      const spread = Math.max(...values) - Math.min(...values);
+      const average = values.reduce((sum, value) => sum + value, 0) / values.length;
+      const ok = spread <= SCALE_RATIO_TOLERANCE;
+      return {
+        ...base,
+        provenance:
+          "Bringhurst allows scales built from one or more proportions. This lesson chooses one ratio; the 0.03 tolerance is this tool's own calibration for rounding and browser rendering.",
+        severity: ok ? "ok" : spread > 0.08 ? "error" : "warn",
+        measured: `${spread.toFixed(3)} spread across implied ratios (${ratios.map(({ level, ratio }) => `${level} ${ratio.toFixed(3)}×`).join(", ")})`,
+        message: ok
+          ? "The rendered levels resolve to one ratio."
+          : `The rendered levels imply ratios from ${Math.min(...values).toFixed(3)}× to ${Math.max(...values).toFixed(3)}×, so the scale is not behaving as one system.`,
+        ...(ok ? {} : { suggestion: suggestion("scaleRatio", spec.scaleRatio, average) }),
+      };
+    }
+
+    case "secondary-cue": {
+      const body = m.levelAppearances.find((level) => level.level === "body");
+      const headings = m.levelAppearances.filter((level) => HEADING_LEVELS.has(level.level));
+      if (!body || headings.length === 0) {
+        return {
+          ...base,
+          severity: "ok",
+          measured: "no heading and body pair on the page",
+          message: "A heading and body text are both needed to compare their non-size cues.",
+        };
+      }
+      const comparisons = headings.map((heading) => {
+        const differentFamily = heading.fontFamily !== body.fontFamily;
+        const weightDifference = Math.abs(heading.fontWeight - body.fontWeight);
+        return { ...heading, differentFamily, weightDifference, ok: differentFamily || weightDifference >= MIN_WEIGHT_STEP };
+      });
+      const weak = comparisons.filter((comparison) => !comparison.ok);
+      const ok = weak.length === 0;
+      return {
+        ...base,
+        provenance:
+          "CSS Fonts defines the numeric weight scale. Requiring a second cue and treating 100 units as visible are this tool's own calibrations; actual darkness remains face-dependent.",
+        severity: ok ? "ok" : weak.length === headings.length ? "error" : "warn",
+        measured: comparisons
+          .map((comparison) => `${comparison.level}: ${comparison.differentFamily ? "different family" : `${comparison.weightDifference} weight units`}`)
+          .join(", "),
+        message: ok
+          ? "Each heading has a non-size cue as well as scale."
+          : `${weak.map((comparison) => comparison.level).join(" and ")} rely on size alone; their rendered family matches the body and the weight difference is under one step.`,
+        ...(ok ? {} : { suggestion: suggestion("headingWeight", spec.headingWeight, body.fontWeight + MIN_WEIGHT_STEP) }),
       };
     }
 
@@ -170,19 +251,37 @@ function evaluate(rule: Rule, spec: TypeSpec, m: SpecimenMeasurement): Finding {
     }
 
     case "paragraph-rhythm": {
-      // Judged against the line box: a gap only reads as a separation when it
-      // is clearly bigger than the space between two lines of the paragraph.
       const line = m.computedLineHeight || 1;
-      const ratio = m.paragraphGap / line;
-      const ok = ratio >= 0.35;
+      const gapRatio = m.paragraphGap / line;
+      const indentRatio = m.computedFontSize > 0 ? m.paragraphIndent / m.computedFontSize : 0;
+      const hasGap = gapRatio >= 0.35;
+      const indentPresent = indentRatio > 0.05;
+      const hasValidIndent = indentRatio >= 1 && indentRatio <= 4;
+      const ok = (hasGap && !indentPresent) || (!hasGap && hasValidIndent);
       return {
         ...base,
+        provenance:
+          "Butterick specifies a first-line indent of 1–4 times the point size and says to use indent or paragraph space, not both. The 0.35× line-box threshold for a visible gap is this tool's own calibration.",
         severity: ok ? "ok" : "warn",
-        measured: `${m.paragraphGap}px gap, ${ratio.toFixed(2)}× the line box`,
+        measured: `${m.paragraphGap}px gap (${gapRatio.toFixed(2)}× the line box), ${m.paragraphIndent}px indent (${indentRatio.toFixed(2)}× the body size)`,
         message: ok
-          ? "The gap between paragraphs reads as a separation."
-          : `The gap is ${m.paragraphGap}px against a ${line}px line box. Below about a third of the line box the break stops registering and the text becomes one undifferentiated block.`,
-        ...(ok ? {} : { suggestion: suggestion("paragraphSpacing", spec.paragraphSpacing, 0.8) }),
+          ? hasGap
+            ? "The gap between paragraphs supplies one clear signal of separation."
+            : "The first-line indent supplies one clear signal of separation."
+          : hasGap && indentPresent
+            ? "The paragraphs use both a gap and an indent. One signal is enough; together they overstate every break."
+            : indentRatio > 4
+              ? "The indent is more than four times the body size, so the first line disconnects from the paragraph edge."
+              : "There is neither a visible gap nor a full-em indent, so the paragraphs run together.",
+        ...(ok
+          ? {}
+          : {
+              suggestion: hasGap && indentPresent
+                ? suggestion("paragraphIndent", spec.paragraphIndent, 0)
+                : indentPresent
+                  ? suggestion("paragraphIndent", spec.paragraphIndent, 1)
+                  : suggestion("paragraphSpacing", spec.paragraphSpacing, 0.8),
+            }),
       };
     }
 

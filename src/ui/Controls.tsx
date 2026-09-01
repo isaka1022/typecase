@@ -14,7 +14,7 @@ interface Props {
  * the point: an interface that offers everything at once teaches nothing. */
 function visibleControls(unlockedLesson: number): NumericControl[] {
   const taught = RULES.filter((rule) => rule.lesson <= unlockedLesson)
-    .map((rule) => rule.control)
+    .flatMap((rule) => [rule.control, ...(rule.relatedControls ?? [])])
     .filter((control): control is NumericControl => control !== undefined);
   const unique = new Set(taught);
   return NUMERIC_CONTROL_NAMES.filter((name) => unique.has(name));

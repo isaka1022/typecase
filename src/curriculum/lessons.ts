@@ -21,15 +21,15 @@ export const LESSONS: Lesson[] = [
     number: 2,
     title: "Build a hierarchy",
     premise:
-      "A reader should be able to see the structure of a page before reading a word of it. That means the levels have to differ enough to be told apart at a glance, and the sizes have to come from one ratio rather than being picked one at a time.",
-    prompt: "Ask your agent why the headings are hard to distinguish from the body.",
+      "A reader should be able to see the structure of a page before reading a word of it. The levels need enough size difference to separate at a glance, one ratio to keep those sizes coherent, and a second cue such as family or weight so size is not doing all the work.",
+    prompt: "Ask your agent whether the hierarchy works as a system, not just as a list of sizes.",
   },
   {
     number: 3,
     title: "Set the spacing",
     premise:
-      "Almost everything left is a decision about space. A heading belongs to the text beneath it, so it needs more room above than below. Paragraphs need one signal of separation — not two, and not none.",
-    prompt: "Ask your agent to fix the heading spacing, then hand you a control.",
+      "Almost everything left is a decision about space. A heading belongs to the text beneath it, so it needs more room above than below. Paragraphs need either a visible gap or a first-line indent — one signal, not both — and short final lines should not leave holes in the column.",
+    prompt: "Ask your agent to diagnose the spacing, then hand you the weakest control.",
   },
 ];
 

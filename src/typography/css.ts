@@ -25,14 +25,17 @@ body {
   background: var(--paper);
 }
 
-h1 { font-family: ${spec.displayFamily}; font-size: ${scaleStep(spec, 4)}px; line-height: 1.08; }
-h2 { font-family: ${spec.displayFamily}; font-size: ${scaleStep(spec, 2)}px; line-height: 1.2; }
+h1 { font-family: ${spec.displayFamily}; font-size: ${scaleStep(spec, 4)}px; font-weight: ${spec.headingWeight}; line-height: 1.08; }
+h2 { font-family: ${spec.displayFamily}; font-size: ${scaleStep(spec, 2)}px; font-weight: ${spec.headingWeight}; line-height: 1.2; }
 
 h2 {
   margin-top: ${spec.headingSpaceBefore}em;
   margin-bottom: ${spec.headingSpaceAfter}em;
 }
 
-p + p { margin-top: ${spec.paragraphSpacing}em; }
+p + p {
+  margin-top: ${spec.paragraphSpacing}em;
+  text-indent: ${spec.paragraphIndent}em;
+}
 `;
 }

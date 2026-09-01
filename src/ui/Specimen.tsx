@@ -51,7 +51,11 @@ export default function Specimen({ spec, blocks, usingOwnText, onLayout, omitted
             <h1
               className="paper__title"
               data-level="title"
-              style={{ fontFamily: spec.displayFamily, fontSize: `${scaleStep(spec, 4)}px` }}
+              style={{
+                fontFamily: spec.displayFamily,
+                fontSize: `${scaleStep(spec, 4)}px`,
+                fontWeight: spec.headingWeight,
+              }}
             >
               {ARTICLE_TITLE}
             </h1>
@@ -70,6 +74,7 @@ export default function Specimen({ spec, blocks, usingOwnText, onLayout, omitted
               style={{
                 fontFamily: spec.displayFamily,
                 fontSize: `${scaleStep(spec, 2)}px`,
+                fontWeight: spec.headingWeight,
                 marginTop: `${spec.headingSpaceBefore}em`,
                 marginBottom: `${spec.headingSpaceAfter}em`,
               }}
@@ -81,7 +86,10 @@ export default function Specimen({ spec, blocks, usingOwnText, onLayout, omitted
               key={index}
               data-measure="paragraph"
               data-level="body"
-              style={{ marginTop: index === 0 ? 0 : `${spec.paragraphSpacing}em` }}
+              style={{
+                marginTop: index === 0 ? 0 : `${spec.paragraphSpacing}em`,
+                textIndent: index === 0 ? 0 : `${spec.paragraphIndent}em`,
+              }}
             >
               {block.text}
             </p>

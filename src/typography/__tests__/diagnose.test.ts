@@ -18,21 +18,28 @@ function healthy(): SpecimenMeasurement {
     computedFontSize: 18,
     computedLineHeight: 28.8,
     levelSizes: [
-      { level: "title", px: 42 },
-      { level: "heading", px: 26 },
-      { level: "standfirst", px: 21 },
+      { level: "title", px: 43.95 },
+      { level: "heading", px: 28.13 },
+      { level: "standfirst", px: 22.5 },
       { level: "body", px: 18 },
+    ],
+    levelAppearances: [
+      { level: "title", fontWeight: 600, fontFamily: "Inter" },
+      { level: "heading", fontWeight: 600, fontFamily: "Inter" },
+      { level: "standfirst", fontWeight: 400, fontFamily: "Inter" },
+      { level: "body", fontWeight: 400, fontFamily: "Inter" },
     ],
     headingSpaceBefore: 44,
     headingSpaceAfter: 18,
     paragraphGap: 14,
+    paragraphIndent: 0,
     contrast: 9.2,
     widowCount: 0,
   };
 }
 
 function goodSpec(): TypeSpec {
-  return { ...INITIAL_SPEC, bodySize: 18, lineHeight: 1.6, measureTarget: 66, scaleRatio: 1.25, paragraphSpacing: 0.8, headingSpaceBefore: 2, inkLightness: 25 };
+  return { ...INITIAL_SPEC, bodySize: 18, lineHeight: 1.6, measureTarget: 66, scaleRatio: 1.25, headingWeight: 600, paragraphSpacing: 0.8, paragraphIndent: 0, headingSpaceBefore: 2, inkLightness: 25 };
 }
 
 const statusOf = (m: SpecimenMeasurement, rule: string, spec = goodSpec()) =>
@@ -89,6 +96,38 @@ describe("diagnose", () => {
     expect(statusOf(one, "scale-distinction")).toBe("ok");
   });
 
+  it("measures whether rendered sizes resolve to one ratio", () => {
+    const incoherent = {
+      ...healthy(),
+      levelSizes: [
+        { level: "title", px: 54 },
+        { level: "heading", px: 24 },
+        { level: "body", px: 18 },
+      ],
+    };
+    const finding = diagnose({ ...goodSpec(), scaleRatio: 1.25 }, incoherent, 2).find((f) => f.ruleId === "scale-coherence");
+    expect(finding?.severity).not.toBe("ok");
+    expect(finding?.measured).toContain("title");
+  });
+
+  it("measures a non-size cue from rendered family and weight", () => {
+    const sizeOnly = {
+      ...healthy(),
+      levelAppearances: healthy().levelAppearances.map((level) => ({
+        ...level,
+        fontWeight: 400,
+        fontFamily: "Inter",
+      })),
+    };
+    expect(statusOf(sizeOnly, "secondary-cue", { ...goodSpec(), headingWeight: 800 })).toBe("error");
+    expect(statusOf({
+      ...sizeOnly,
+      levelAppearances: sizeOnly.levelAppearances.map((level) =>
+        level.level === "body" ? level : { ...level, fontFamily: "Source Serif" },
+      ),
+    }, "secondary-cue")).toBe("ok");
+  });
+
   it("wants more space above a heading than below it", () => {
     expect(statusOf({ ...healthy(), headingSpaceBefore: 10, headingSpaceAfter: 30 }, "heading-proximity")).toBe("warn");
   });
@@ -98,6 +137,11 @@ describe("diagnose", () => {
     // A gap that would pass on a tight line box fails on a generous one.
     expect(statusOf({ ...healthy(), paragraphGap: line * 0.5 }, "paragraph-rhythm")).toBe("ok");
     expect(statusOf({ ...healthy(), paragraphGap: line * 0.2 }, "paragraph-rhythm")).toBe("warn");
+  });
+
+  it("accepts an indent instead of a gap, but not both", () => {
+    expect(statusOf({ ...healthy(), paragraphGap: 0, paragraphIndent: 18 }, "paragraph-rhythm")).toBe("ok");
+    expect(statusOf({ ...healthy(), paragraphGap: 14, paragraphIndent: 18 }, "paragraph-rhythm")).toBe("warn");
   });
 
   it("reports paragraphs that end on a single word", () => {

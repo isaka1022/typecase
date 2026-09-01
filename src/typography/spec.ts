@@ -9,7 +9,9 @@ export interface TypeSpec {
   lineHeight: number;
   measureTarget: number;
   scaleRatio: number;
+  headingWeight: number;
   paragraphSpacing: number;
+  paragraphIndent: number;
   headingSpaceBefore: number;
   headingSpaceAfter: number;
   inkLightness: number;
@@ -37,7 +39,9 @@ export const INITIAL_SPEC: TypeSpec = {
   lineHeight: 1.25,
   measureTarget: 108,
   scaleRatio: 1.111,
+  headingWeight: 400,
   paragraphSpacing: 0,
+  paragraphIndent: 0,
   headingSpaceBefore: 0.6,
   headingSpaceAfter: 0.9,
   inkLightness: 62,
@@ -57,7 +61,9 @@ export const NUMERIC_CONTROLS = {
   lineHeight: { min: 1.0, max: 2.2, step: 0.05, unit: "×", label: "Line spacing" },
   measureTarget: { min: 30, max: 120, step: 1, unit: "ch", label: "Measure" },
   scaleRatio: { min: 1.05, max: 1.8, step: 0.005, unit: "×", label: "Scale ratio" },
+  headingWeight: { min: 400, max: 800, step: 100, unit: "", label: "Heading weight" },
   paragraphSpacing: { min: 0, max: 2, step: 0.05, unit: "em", label: "Paragraph spacing" },
+  paragraphIndent: { min: 0, max: 4, step: 0.1, unit: "em", label: "First-line indent" },
   headingSpaceBefore: { min: 0, max: 4, step: 0.05, unit: "em", label: "Space above heading" },
   headingSpaceAfter: { min: 0, max: 4, step: 0.05, unit: "em", label: "Space below heading" },
   inkLightness: { min: 8, max: 70, step: 1, unit: "%", label: "Ink lightness" },

@@ -11,6 +11,8 @@ export interface Rule {
   why: string;
   source: string;
   control?: NumericControl;
+  /** Extra controls taught by the rule without changing its challenge control. */
+  relatedControls?: NumericControl[];
 }
 
 export const RULES: Rule[] = [
@@ -51,6 +53,24 @@ export const RULES: Rule[] = [
     control: "scaleRatio",
   },
   {
+    id: "scale-coherence",
+    lesson: 2,
+    title: "Scale coherence",
+    target: "each level resolves to the same ratio",
+    why: "A scale is a system, not a list of plausible sizes. When each level implies a different ratio, small changes accumulate and the hierarchy loses the rhythm that made it useful.",
+    source: "Bringhurst, The Elements of Typographic Style, section 8.6.1 (modular scales)",
+    control: "scaleRatio",
+  },
+  {
+    id: "secondary-cue",
+    lesson: 2,
+    title: "Secondary cue",
+    target: "headings differ from body text in family or by at least one weight step",
+    why: "Size should not carry the whole hierarchy. A change of family or weight keeps headings recognisable when the size difference is subtle or the page is scanned quickly.",
+    source: "CSS Fonts Module Level 4; Gestalt similarity",
+    control: "headingWeight",
+  },
+  {
     id: "heading-proximity",
     lesson: 3,
     title: "Heading proximity",
@@ -63,10 +83,11 @@ export const RULES: Rule[] = [
     id: "paragraph-rhythm",
     lesson: 3,
     title: "Paragraph separation",
-    target: "space between paragraphs, or first-line indents — not neither",
+    target: "either space between paragraphs or a first-line indent — not both",
     why: "Paragraphs need one signal of separation. With no space and no indent the text becomes an undifferentiated block; with both it is over-signalled.",
     source: "Butterick, Practical Typography",
     control: "paragraphSpacing",
+    relatedControls: ["paragraphIndent"],
   },
   {
     id: "widows",
