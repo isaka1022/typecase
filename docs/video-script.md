@@ -37,8 +37,8 @@ problem."* Show the tool call firing, then the answer. Cut to the diagnosis
 panel filling in.
 
 > So I ask it to diagnose the page. It calls diagnose_specimen, and what comes
-> back is measured, not restated. Ninety-eight characters per line — that is the
-> browser's own line box, read with getClientRects, not the setting echoed back.
+> back is measured, not restated. The character count it reports is the browser's
+> own line box, read with getClientRects — not the setting echoed back.
 > Every finding carries its source, and says which numbers are quoted standards
 > and which are this tool's own calibration. A diagnosis that dresses a
 > preference up as a citation is worse than no diagnosis.
@@ -90,6 +90,14 @@ somebody else's page. Then the URL card.
 
 ## Recording notes
 
+- **Record at 1440 wide or more.** The measure is read off the rendered page, so a
+  narrow window puts the line length inside the passing band and the opening
+  diagnosis loses its worst fault — at 1280 the page reports 73 characters and
+  measure passes before the agent has done anything. Check the panel says three
+  faults before you roll.
+- Clear the page state first (the reset button, or localStorage). Progress
+  persists between visits, and a page that already has lesson 2 open will not
+  show the lesson-1 tool surface the narration describes.
 - Do the run once without recording. ChatGPT's phrasing varies; find the prompts
   that reliably trigger the intended tool before you roll.
 - The refusal at 1:55 is the money shot. If the agent complies instead of

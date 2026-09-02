@@ -155,7 +155,9 @@ export function buildTools(): Array<Record<string, unknown>> {
       async execute({ control, value }: { control: string; value: number }) {
         if (!isNumericControl(control)) return text(`There is no control called "${control}".`);
         const open = availableControls();
-        if (!open.includes(control)) {
+        // A control that is out of the enum because it was handed over is refused by the
+        // store, which knows why. Only fall back to the lesson message when it is neither.
+        if (!open.includes(control) && getState().challenge?.control !== control) {
           return text(
             `"${control}" is not available yet. Controls open in lesson ${getState().unlockedLesson}: ${open.join(", ")}.`,
           );
