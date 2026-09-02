@@ -97,3 +97,29 @@ somebody else's page. Then the URL card.
 - Keep the panel visible in every shot after 0:18. It is the evidence that the
   page, not the model, is doing the work.
 - No music. Narration only; the judges are listening for what was built.
+
+---
+
+## Measured timings — v1 VO (MiniMax `English_expressive_narrator`, mp3)
+
+| # | Section | VO | Words | Rate | Script target |
+| --- | --- | --- | --- | --- | --- |
+| 01 | The problem | 17.5s | 51 | 175 wpm | 18s |
+| 02 | The page declares itself | 20.4s | 58 | 171 wpm | 22s |
+| 03 | Diagnose | 27.4s | 73 | 160 wpm | 32s |
+| 04 | Demonstrate | 21.4s | 55 | 154 wpm | 28s |
+| 05 | The handover | 36.5s | 94 | 154 wpm | 40s |
+| 06 | The surface grows | 19.2s | 47 | 147 wpm | 20s |
+| 07 | Close | 9.8s | 27 | 166 wpm | 10s |
+| | **Total** | **2:32** | 405 | 160 wpm | 2:50 |
+
+The VO came in 18 seconds under the script's own plan and 28 under the limit,
+so picture does not have to be cut to fit — the slack goes where the recording
+is genuinely slower than speech: waiting on ChatGPT's reply in sections 03-05,
+and holding on the refusal at the end of 05. Let those breaths run at real
+speed rather than trimming them; a demo that never pauses reads as a montage
+rather than a session.
+
+Regenerate with `node <scratch>/tts.mjs` (GMI queue, `minimax-tts-speech-2.8-hd`).
+Audio lives in `.media/narration/`, which is git-ignored — it is a working
+asset, not part of what the judges clone.
