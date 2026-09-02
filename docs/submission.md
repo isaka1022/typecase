@@ -4,11 +4,19 @@ Live: https://typecase.vercel.app
 Repo: https://github.com/isaka1022/typecase
 Video: (pending)
 
-## Elevator pitch
+## Elevator pitch (175 chars, Devpost limit 200)
 
-A typesetting studio that teaches by doing. The page declares its controls as
-WebMCP tools, an agent demonstrates a fix on the layout you are actually looking
-at, and then hands the control back to you.
+A typesetting studio that teaches by doing: the page declares its controls as
+WebMCP tools, an agent fixes your layout in front of you, then locks itself out
+so you finish it.
+
+## Devpost form fields
+
+- **Project name**: Typecase
+- **Try it out**: https://typecase.vercel.app · https://github.com/isaka1022/typecase
+- **Built with**: webmcp, typescript, react, vite, model-context-protocol, web-audio-free
+- **Video**: (pending — <3 min, public YouTube, audio required)
+- **Cover image**: `.media/stills/typecase-cover.png`
 
 ## What it does
 
