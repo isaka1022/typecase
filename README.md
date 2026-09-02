@@ -76,6 +76,7 @@ The lesson structure follows three findings that long predate agents.
 | `demonstrate_fix` | write | Fix a failing rule and explain it |
 | `hand_over_control` | write | Give a control to the reader and lock the agent out of it |
 | `check_attempt` | read-only | Whether the reader met the open challenge |
+| `export_css` | read-only | The current settings as CSS the reader can paste into their own project |
 
 The read-only tools stay registered for the life of the page so they are always
 in context; only the tools whose descriptor actually changes are re-registered
@@ -114,7 +115,8 @@ as a citation is worse than no diagnosis.
 `Range.getClientRects()`, computed styles, WCAG relative luminance — so the
 character count per line is what the browser actually laid out, not the
 `measure` setting echoed back. Rules and thresholds live in
-`src/typography/rules.ts` with their sources (Bringhurst, Butterick, WCAG 2.1).
+`src/typography/rules.ts` with their sources (Bringhurst, Butterick, WCAG
+2.1, CSS Fonts Level 4).
 
 ## Pointing it at a page you did not build
 
